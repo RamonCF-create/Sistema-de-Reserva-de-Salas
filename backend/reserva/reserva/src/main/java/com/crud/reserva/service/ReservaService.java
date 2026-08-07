@@ -1,5 +1,7 @@
 package com.crud.reserva.service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -8,7 +10,6 @@ import com.crud.reserva.model.Reserva;
 import com.crud.reserva.model.Role;
 import com.crud.reserva.repository.ReservaRepository;
 import com.crud.reserva.repository.UsuarioRepository;
-import java.time.LocalDate;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,7 +27,7 @@ public class ReservaService {
 
         validarDataNaoPassada(reserva.getData());
 
-        validarDisponibilidade(reserva);
+        validarDisponibilidade(reserva, null);
 
         reserva.setStatus("PENDENTE");
 
@@ -65,25 +66,13 @@ public class ReservaService {
 
         Reserva reservaExistente = buscarPorId(id);
 
-        boolean conflito =
-                repository.existsConflitoDeHorario(
-                        id,
-                        reserva.getAmbiente().getId(),
-                        reserva.getData(),
-                        reserva.getHorario(),
-                        List.of("PENDENTE", "APROVADA")
-                );
-
-        if (conflito) {
-            throw new RuntimeException(
-                    "Ja existe uma reserva para este ambiente neste horario"
-            );
-        }
+        validarDisponibilidade(reserva, id);
 
         reservaExistente.setAmbiente(reserva.getAmbiente());
         reservaExistente.setProfessor(reserva.getProfessor());
         reservaExistente.setData(reserva.getData());
-        reservaExistente.setHorario(reserva.getHorario());
+        reservaExistente.setHorarioInicio(reserva.getHorarioInicio());
+        reservaExistente.setHorarioFim(reserva.getHorarioFim());
 
         return repository.save(reservaExistente);
     }
@@ -118,6 +107,48 @@ public class ReservaService {
     public Reserva buscarPorId(Long id) {
         return repository.findByIdAndExcluidoFalse(id)
                 .orElseThrow(() -> new RuntimeException("Reserva nao encontrada"));
+    }
+
+    private void validarDisponibilidade(Reserva reserva, Long reservaId) {
+        validarHorarios(reserva);
+
+        LocalTime inicio = LocalTime.parse(reserva.getHorarioInicio());
+        LocalTime fim = LocalTime.parse(reserva.getHorarioFim());
+
+        LocalTime inicioComIntervalo = inicio.minusMinutes(15);
+        LocalTime fimComIntervalo = fim.plusMinutes(15);
+
+        boolean ocupado = repository.existsConflitoDeIntervalo(
+                reservaId,
+                reserva.getAmbiente().getId(),
+                reserva.getData(),
+                inicioComIntervalo.toString(),
+                fimComIntervalo.toString(),
+                List.of("PENDENTE", "APROVADA")
+        );
+
+        if (ocupado) {
+            throw new RuntimeException(
+                    "Ja existe uma reserva para este ambiente neste periodo ou no intervalo minimo de 15 minutos"
+            );
+        }
+    }
+
+    private void validarHorarios(Reserva reserva) {
+        if (reserva.getHorarioInicio() == null || reserva.getHorarioInicio().isBlank()) {
+            throw new RuntimeException("Horario inicial e obrigatorio");
+        }
+
+        if (reserva.getHorarioFim() == null || reserva.getHorarioFim().isBlank()) {
+            throw new RuntimeException("Horario final e obrigatorio");
+        }
+
+        LocalTime inicio = LocalTime.parse(reserva.getHorarioInicio());
+        LocalTime fim = LocalTime.parse(reserva.getHorarioFim());
+
+        if (!fim.isAfter(inicio)) {
+            throw new RuntimeException("Horario final deve ser depois do horario inicial");
+        }
     }
 
     private String validarStatus(String status) {
@@ -166,30 +197,16 @@ public class ReservaService {
         return ambiente
                 + " em "
                 + reserva.getData()
-                + " as "
-                + reserva.getHorario();
-    }
-
-    private void validarDisponibilidade(Reserva reserva) {
-
-        boolean ocupado =
-                repository.existsByAmbienteIdAndDataAndHorarioAndStatusIn(
-                        reserva.getAmbiente().getId(),
-                        reserva.getData(),
-                        reserva.getHorario(),
-                        List.of("PENDENTE", "APROVADA")
-                );
-
-        if (ocupado) {
-            throw new RuntimeException(
-                    "Ja existe uma reserva para este ambiente neste horario"
-            );
-        }
+                + " das "
+                + reserva.getHorarioInicio()
+                + " ate "
+                + reserva.getHorarioFim();
     }
 
     private void validarDataNaoPassada(String dataStr) {
         LocalDate data = LocalDate.parse(dataStr);
         LocalDate hoje = LocalDate.now();
+
         if (data.isBefore(hoje)) {
             throw new RuntimeException("Nao e possivel reservar em datas passadas");
         }

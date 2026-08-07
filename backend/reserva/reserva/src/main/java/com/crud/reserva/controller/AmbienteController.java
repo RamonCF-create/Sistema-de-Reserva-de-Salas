@@ -47,9 +47,10 @@ public class AmbienteController {
     @Operation(summary = "Consultar disponibilidade dos ambientes por data e horario")
     public List<AmbienteDisponibilidadeDTO> listarDisponibilidade(
             @RequestParam String data,
-            @RequestParam String horario
+            @RequestParam String horarioInicio,
+            @RequestParam String horarioFim
     ) {
-        return service.listarDisponibilidade(data, horario);
+        return service.listarDisponibilidade(data, horarioInicio, horarioFim);
     }
 
     @PutMapping("/{id}")

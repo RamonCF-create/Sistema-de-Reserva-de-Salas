@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -49,30 +50,42 @@ public class AmbienteService {
 
     public List<AmbienteDisponibilidadeDTO> listarDisponibilidade(
             String data,
-            String horario
+            String horarioInicio,
+            String horarioFim
     ) {
         LocalDate.parse(data);
-
-        if (horario == null || horario.isBlank()) {
-            throw new RuntimeException("Horario e obrigatorio");
-        }
+        validarHorarios(horarioInicio, horarioFim);
 
         return repository.findByExcluidoFalse()
                 .stream()
-                .map(ambiente -> toDisponibilidade(ambiente, data, horario))
+                .map(ambiente -> toDisponibilidade(
+                        ambiente,
+                        data,
+                        horarioInicio,
+                        horarioFim
+                ))
                 .toList();
     }
 
     private AmbienteDisponibilidadeDTO toDisponibilidade(
             Ambiente ambiente,
             String data,
-            String horario
+            String horarioInicio,
+            String horarioFim
     ) {
+        LocalTime inicio = LocalTime.parse(horarioInicio);
+        LocalTime fim = LocalTime.parse(horarioFim);
+
+        LocalTime inicioComIntervalo = inicio.minusMinutes(15);
+        LocalTime fimComIntervalo = fim.plusMinutes(15);
+
         boolean ocupado =
-                reservaRepository.existsByAmbienteIdAndDataAndHorarioAndStatusIn(
+                reservaRepository.existsConflitoDeIntervalo(
+                        null,
                         ambiente.getId(),
                         data,
-                        horario,
+                        inicioComIntervalo.toString(),
+                        fimComIntervalo.toString(),
                         List.of("PENDENTE", "APROVADA")
                 );
 
@@ -82,8 +95,26 @@ public class AmbienteService {
                 ambiente.getCapacidade(),
                 ambiente.getFichaTecnica(),
                 data,
-                horario,
+                horarioInicio,
+                horarioFim,
                 !ocupado
         );
+    }
+
+    private void validarHorarios(String horarioInicio, String horarioFim) {
+        if (horarioInicio == null || horarioInicio.isBlank()) {
+            throw new RuntimeException("Horario inicial e obrigatorio");
+        }
+
+        if (horarioFim == null || horarioFim.isBlank()) {
+            throw new RuntimeException("Horario final e obrigatorio");
+        }
+
+        LocalTime inicio = LocalTime.parse(horarioInicio);
+        LocalTime fim = LocalTime.parse(horarioFim);
+
+        if (!fim.isAfter(inicio)) {
+            throw new RuntimeException("Horario final deve ser depois do horario inicial");
+        }
     }
 }

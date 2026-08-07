@@ -5,7 +5,8 @@ const reservaInicial = {
   ambienteId: '',
   professor: '',
   data: '',
-  horario: ''
+  horarioInicio: '',
+  horarioFim: ''
 };
 
 const ambienteInicial = {
@@ -30,7 +31,8 @@ function Home() {
   const [ambienteForm, setAmbienteForm] = useState(ambienteInicial);
   const [disponibilidadeFiltro, setDisponibilidadeFiltro] = useState({
     data: '',
-    horario: ''
+    horarioInicio: '',
+    horarioFim: ''
   });
   const [disponibilidadeAmbientes, setDisponibilidadeAmbientes] = useState([]);
   const [disponibilidadeCarregando, setDisponibilidadeCarregando] = useState(false);
@@ -150,8 +152,19 @@ function Home() {
     event.preventDefault();
     limparMensagens();
 
-    if (!reservaForm.ambienteId || !reservaForm.professor || !reservaForm.data || !reservaForm.horario) {
+    if (
+      !reservaForm.ambienteId ||
+      !reservaForm.professor ||
+      !reservaForm.data ||
+      !reservaForm.horarioInicio ||
+      !reservaForm.horarioFim
+    ) {
       setErro('Preencha todos os campos da reserva');
+      return;
+    }
+
+    if (reservaForm.horarioFim <= reservaForm.horarioInicio) {
+      setErro('O horario final deve ser depois do horario inicial');
       return;
     }
 
@@ -180,7 +193,8 @@ function Home() {
       ambienteId: reserva.ambiente?.id || '',
       professor: reserva.professor || '',
       data: reserva.data || '',
-      horario: reserva.horario || ''
+      horarioInicio: reserva.horarioInicio || '',
+      horarioFim: reserva.horarioFim || ''
     });
     setReservaEditandoId(reserva.id);
     setPaginaAtual('reserva-form');
@@ -298,8 +312,17 @@ function Home() {
     event.preventDefault();
     limparMensagens();
 
-    if (!disponibilidadeFiltro.data || !disponibilidadeFiltro.horario) {
-      setErro('Informe data e horario para consultar a disponibilidade');
+    if (
+      !disponibilidadeFiltro.data ||
+      !disponibilidadeFiltro.horarioInicio ||
+      !disponibilidadeFiltro.horarioFim
+    ) {
+      setErro('Informe data, horario inicial e horario final para consultar a disponibilidade');
+      return;
+    }
+
+    if (disponibilidadeFiltro.horarioFim <= disponibilidadeFiltro.horarioInicio) {
+      setErro('O horario final deve ser depois do horario inicial');
       return;
     }
 
@@ -511,11 +534,21 @@ function Home() {
               </label>
 
               <label style={styles.formGroup}>
-                Horario
+                Horario inicial
                 <input
                   type="time"
-                  value={reservaForm.horario}
-                  onChange={(event) => alterarReserva('horario', event.target.value)}
+                  value={reservaForm.horarioInicio}
+                  onChange={(event) => alterarReserva('horarioInicio', event.target.value)}
+                  style={styles.input}
+                />
+              </label>
+
+              <label style={styles.formGroup}>
+                Horario final
+                <input
+                  type="time"
+                  value={reservaForm.horarioFim}
+                  onChange={(event) => alterarReserva('horarioFim', event.target.value)}
                   style={styles.input}
                 />
               </label>
@@ -565,7 +598,7 @@ function Home() {
 
             {reservaDataFiltrada && (
               <p style={styles.muted}>
-                Exibindo reservas de {reservaDataFiltrada}, ordenadas por horario.
+                Exibindo reservas de {reservaDataFiltrada}, ordenadas por horario inicial.
               </p>
             )}
 
@@ -660,11 +693,21 @@ function Home() {
               </label>
 
               <label style={styles.formGroup}>
-                Horario
+                Horario inicial
                 <input
                   type="time"
-                  value={disponibilidadeFiltro.horario}
-                  onChange={(event) => alterarDisponibilidade('horario', event.target.value)}
+                  value={disponibilidadeFiltro.horarioInicio}
+                  onChange={(event) => alterarDisponibilidade('horarioInicio', event.target.value)}
+                  style={styles.input}
+                />
+              </label>
+
+              <label style={styles.formGroup}>
+                Horario final
+                <input
+                  type="time"
+                  value={disponibilidadeFiltro.horarioFim}
+                  onChange={(event) => alterarDisponibilidade('horarioFim', event.target.value)}
                   style={styles.input}
                 />
               </label>
@@ -705,7 +748,9 @@ function Home() {
                   <p style={styles.cardText}>{ambiente.fichaTecnica || 'Sem ficha tecnica'}</p>
                   {disponibilidadePorAmbiente[ambiente.id] && (
                     <p style={styles.muted}>
-                      {disponibilidadePorAmbiente[ambiente.id].data} as {disponibilidadePorAmbiente[ambiente.id].horario}
+                      {disponibilidadePorAmbiente[ambiente.id].data} das{' '}
+                      {disponibilidadePorAmbiente[ambiente.id].horarioInicio} ate{' '}
+                      {disponibilidadePorAmbiente[ambiente.id].horarioFim}
                     </p>
                   )}
                   {isAdmin && (
@@ -889,7 +934,7 @@ function TabelaReservas({
               <td style={styles.td}>{reserva.ambiente?.nome}</td>
               <td style={styles.td}>{reserva.professor}</td>
               <td style={styles.td}>{reserva.data}</td>
-              <td style={styles.td}>{reserva.horario}</td>
+              <td style={styles.td}>{formatarHorarioReserva(reserva)}</td>
               <td style={styles.td}>
                 <span style={{ ...styles.badge, ...statusStyle(reserva.status) }}>{reserva.status}</span>
               </td>
@@ -923,6 +968,14 @@ function TabelaReservas({
       </table>
     </div>
   );
+}
+
+function formatarHorarioReserva(reserva) {
+  if (!reserva.horarioInicio || !reserva.horarioFim) {
+    return '-';
+  }
+
+  return `${reserva.horarioInicio} - ${reserva.horarioFim}`;
 }
 
 function statusStyle(status) {

@@ -15,7 +15,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     @Query("SELECT r FROM Reserva r " +
             "LEFT JOIN r.ambiente a " +
             "WHERE r.excluido = false " +
-            "ORDER BY r.data ASC, r.horario ASC, a.nome ASC")
+            "ORDER BY r.data ASC, r.horarioInicio ASC, a.nome ASC")
     List<Reserva> findAll();
 
     List<Reserva> findByUsuarioIdAndExcluidoFalse(Long usuarioId);
@@ -26,7 +26,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
             "LEFT JOIN FETCH r.ambiente " +
             "WHERE r.data = :data " +
             "AND r.excluido = false " +
-            "ORDER BY r.ambiente.nome ASC, r.horario ASC")
+            "ORDER BY r.ambiente.nome ASC, r.horarioInicio ASC")
     List<Reserva> findReservasDoDiaOrdenadas(@Param("data") String data);
 
     boolean existsByUsuarioIdAndExcluidoFalse(Long usuarioId);
@@ -35,29 +35,17 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
             "FROM Reserva r " +
             "WHERE r.ambiente.id = :ambienteId " +
             "AND r.data = :data " +
-            "AND r.horario = :horario " +
             "AND r.status IN :status " +
-            "AND r.excluido = false")
-    boolean existsByAmbienteIdAndDataAndHorarioAndStatusIn(
+            "AND r.excluido = false " +
+            "AND (:reservaId IS NULL OR r.id <> :reservaId) " +
+            "AND r.horarioInicio < :horarioFimComIntervalo " +
+            "AND r.horarioFim > :horarioInicioComIntervalo")
+    boolean existsConflitoDeIntervalo(
+            @Param("reservaId") Long reservaId,
             @Param("ambienteId") Long ambienteId,
             @Param("data") String data,
-            @Param("horario") String horario,
-            @Param("status") List<String> status
-    );
-
-    @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END " +
-            "FROM Reserva r " +
-            "WHERE r.id <> :id " +
-            "AND r.ambiente.id = :ambienteId " +
-            "AND r.data = :data " +
-            "AND r.horario = :horario " +
-            "AND r.status IN :status " +
-            "AND r.excluido = false")
-    boolean existsConflitoDeHorario(
-            @Param("id") Long id,
-            @Param("ambienteId") Long ambienteId,
-            @Param("data") String data,
-            @Param("horario") String horario,
+            @Param("horarioInicioComIntervalo") String horarioInicioComIntervalo,
+            @Param("horarioFimComIntervalo") String horarioFimComIntervalo,
             @Param("status") List<String> status
     );
 }

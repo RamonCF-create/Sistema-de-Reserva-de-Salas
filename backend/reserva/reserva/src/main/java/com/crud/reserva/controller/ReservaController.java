@@ -62,7 +62,8 @@ public class ReservaController {
         reserva.setUsuario(usuario);
         reserva.setProfessor(dto.getProfessor());
         reserva.setData(dto.getData());
-        reserva.setHorario(dto.getHorario());
+        reserva.setHorarioInicio(dto.getHorarioInicio());
+        reserva.setHorarioFim(dto.getHorarioFim());
 
         return ReservaResponseDTO.from(service.salvar(reserva));
     }
@@ -124,7 +125,8 @@ public class ReservaController {
         reserva.setAmbiente(buscarAmbiente(dto.getAmbienteId()));
         reserva.setProfessor(dto.getProfessor());
         reserva.setData(dto.getData());
-        reserva.setHorario(dto.getHorario());
+        reserva.setHorarioInicio(dto.getHorarioInicio());
+        reserva.setHorarioFim(dto.getHorarioFim());
 
         return ReservaResponseDTO.from(service.atualizar(id, reserva));
     }

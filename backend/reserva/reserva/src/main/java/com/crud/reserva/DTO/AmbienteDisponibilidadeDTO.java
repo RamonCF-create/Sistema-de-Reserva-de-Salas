@@ -6,7 +6,8 @@ public record AmbienteDisponibilidadeDTO(
         Integer capacidade,
         String fichaTecnica,
         String data,
-        String horario,
+        String horarioInicio,
+        String horarioFim,
         boolean disponivel
 ) {
 }

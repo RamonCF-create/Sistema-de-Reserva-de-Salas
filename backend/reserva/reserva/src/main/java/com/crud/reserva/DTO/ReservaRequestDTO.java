@@ -15,9 +15,11 @@ public class ReservaRequestDTO {
     @NotBlank(message = "Data e obrigatoria")
     private String data;
 
-    @NotBlank(message = "Horario e obrigatorio")
-    private String horario;
+    @NotBlank(message = "Horario inicial e obrigatorio")
+    private String horarioInicio;
 
+    @NotBlank(message = "Horario final e obrigatorio")
+    private String horarioFim;
     private String status;
 
     @NotNull(message = "Ambiente e obrigatorio")

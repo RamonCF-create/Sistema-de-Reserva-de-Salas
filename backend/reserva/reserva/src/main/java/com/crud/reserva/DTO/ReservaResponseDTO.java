@@ -6,7 +6,8 @@ public record ReservaResponseDTO(
         Long id,
         String professor,
         String data,
-        String horario,
+        String horarioInicio,
+        String horarioFim,
         String status,
         AmbienteResponseDTO ambiente,
         UsuarioResponseDTO usuario
@@ -16,7 +17,8 @@ public record ReservaResponseDTO(
                 reserva.getId(),
                 reserva.getProfessor(),
                 reserva.getData(),
-                reserva.getHorario(),
+                reserva.getHorarioInicio(),
+                reserva.getHorarioFim(),
                 reserva.getStatus(),
                 AmbienteResponseDTO.from(reserva.getAmbiente()),
                 UsuarioResponseDTO.from(reserva.getUsuario())

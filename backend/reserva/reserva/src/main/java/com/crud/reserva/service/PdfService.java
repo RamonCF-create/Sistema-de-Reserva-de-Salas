@@ -92,7 +92,7 @@ public class PdfService {
     }
 
     private PdfPTable criarTabelaReservas(List<Reserva> reservas) {
-        PdfPTable table = new PdfPTable(new float[]{1.3f, 3.8f, 1.8f});
+        PdfPTable table = new PdfPTable(new float[]{1.6f, 3.8f, 1.8f});
         table.setWidthPercentage(100);
 
         adicionarCelulaCabecalho(table, "Horario");
@@ -100,7 +100,7 @@ public class PdfService {
         adicionarCelulaCabecalho(table, "Status");
 
         for (Reserva reserva : reservas) {
-            adicionarCelula(table, valorOuPadrao(reserva.getHorario()));
+            adicionarCelula(table, formatarHorario(reserva));
             adicionarCelula(table, valorOuPadrao(reserva.getProfessor()));
             adicionarCelula(table, valorOuPadrao(reserva.getStatus()));
         }
@@ -138,6 +138,15 @@ public class PdfService {
         PdfPCell cell = new PdfPCell(new Phrase(texto, font));
         cell.setPadding(7);
         table.addCell(cell);
+    }
+
+    private String formatarHorario(Reserva reserva) {
+        if (reserva.getHorarioInicio() == null || reserva.getHorarioInicio().isBlank()
+                || reserva.getHorarioFim() == null || reserva.getHorarioFim().isBlank()) {
+            return "-";
+        }
+
+        return reserva.getHorarioInicio() + " - " + reserva.getHorarioFim();
     }
 
     private String valorOuPadrao(String valor) {

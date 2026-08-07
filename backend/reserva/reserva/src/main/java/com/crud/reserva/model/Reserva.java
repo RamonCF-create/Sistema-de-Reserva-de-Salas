@@ -18,7 +18,9 @@ public class Reserva {
 
     private String data;
 
-    private String horario;
+    private String horarioInicio;
+
+    private String horarioFim;
 
     private String status;
 
