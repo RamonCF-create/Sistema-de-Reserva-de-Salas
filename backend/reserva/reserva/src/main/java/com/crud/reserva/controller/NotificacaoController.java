@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/notificacoes")
 @RequiredArgsConstructor
 @CrossOrigin("*")
-@Tag(name = "Notificacoes", description = "Notificacoes do usuario autenticado")
+@Tag(name = "Notificações", description = "Notificações do usuário autenticado")
 @SecurityRequirement(name = "bearerAuth")
 public class NotificacaoController {
 
@@ -29,11 +29,11 @@ public class NotificacaoController {
     private final UsuarioRepository usuarioRepository;
 
     @GetMapping
-    @Operation(summary = "Listar notificacoes do usuario logado")
+    @Operation(summary = "Listar notificações do usuário logado")
     public List<NotificacaoResponseDTO> listar(Principal principal) {
         Usuario usuario = usuarioRepository
                 .findByEmailAndExcluidoFalse(principal.getName())
-                .orElseThrow(() -> new RuntimeException("Usuario nao encontrado"));
+                .orElseThrow(() -> new RuntimeException("Usuário nao encontrado"));
 
         return notificacaoService.listarPorUsuario(usuario.getId())
                 .stream()
@@ -42,7 +42,7 @@ public class NotificacaoController {
     }
 
     @PatchMapping("/{id}/lida")
-    @Operation(summary = "Marcar notificacao como lida")
+    @Operation(summary = "Marcar notificação como lida")
     public void marcarComoLida(
             @PathVariable Long id,
             Principal principal
@@ -51,7 +51,7 @@ public class NotificacaoController {
         Usuario usuario = usuarioRepository
                 .findByEmailAndExcluidoFalse(principal.getName())
                 .orElseThrow(() ->
-                        new RuntimeException("Usuario nao encontrado")
+                        new RuntimeException("Usuário não encontrado")
                 );
 
         notificacaoService.marcarComoLida(

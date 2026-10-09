@@ -168,6 +168,24 @@ function Home() {
       return;
     }
 
+    
+    const [horaInicio, minutoInicio] =
+      reservaForm.horarioInicio.split(':').map(Number);
+
+    const [horaFim, minutoFim] =
+      reservaForm.horarioFim.split(':').map(Number);
+
+    const inicioEmMinutos = horaInicio * 60 + minutoInicio;
+    const fimEmMinutos = horaFim * 60 + minutoFim;
+
+    const duracaoMinutos = fimEmMinutos - inicioEmMinutos;
+
+    if (duracaoMinutos < 15) {
+      setErro('A reserva deve ter duração mínima de 15 minutos.');
+      return;
+    }
+
+
     try {
       if (reservaEditandoId) {
         await api.put(`/reservas/${reservaEditandoId}`, reservaForm);
@@ -325,6 +343,26 @@ function Home() {
       setErro('O horario final deve ser depois do horario inicial');
       return;
     }
+
+    
+    const [horaInicio, minutoInicio] =
+      disponibilidadeFiltro.horarioInicio.split(':').map(Number);
+
+    const [horaFim, minutoFim] =
+      disponibilidadeFiltro.horarioFim.split(':').map(Number);
+
+    const inicioEmMinutos = horaInicio * 60 + minutoInicio;
+    const fimEmMinutos = horaFim * 60 + minutoFim;
+
+    const duracaoMinutos = fimEmMinutos - inicioEmMinutos;
+
+    if (duracaoMinutos < 15) {
+      setErro(
+        'O período consultado deve ter duração mínima de 15 minutos.'
+      );
+      return;
+    }
+
 
     setDisponibilidadeCarregando(true);
 

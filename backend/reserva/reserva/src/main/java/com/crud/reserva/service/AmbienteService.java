@@ -31,7 +31,7 @@ public class AmbienteService {
 
     public Ambiente atualizar(Long id, Ambiente ambiente) {
         Ambiente ambienteExistente = repository.findByIdAndExcluidoFalse(id)
-                .orElseThrow(() -> new RuntimeException("Ambiente nao encontrado"));
+                .orElseThrow(() -> new RuntimeException("Ambiente não encontrado"));
 
         ambienteExistente.setNome(ambiente.getNome());
         ambienteExistente.setCapacidade(ambiente.getCapacidade());
@@ -42,7 +42,7 @@ public class AmbienteService {
 
     public void deletar(Long id) {
         Ambiente ambiente = repository.findByIdAndExcluidoFalse(id)
-                .orElseThrow(() -> new RuntimeException("Ambiente nao encontrado"));
+                .orElseThrow(() -> new RuntimeException("Ambiente não encontrado"));
 
         ambiente.setExcluido(true);
         repository.save(ambiente);
@@ -103,18 +103,18 @@ public class AmbienteService {
 
     private void validarHorarios(String horarioInicio, String horarioFim) {
         if (horarioInicio == null || horarioInicio.isBlank()) {
-            throw new RuntimeException("Horario inicial e obrigatorio");
+            throw new RuntimeException("Horário inicial é obrigatório");
         }
 
         if (horarioFim == null || horarioFim.isBlank()) {
-            throw new RuntimeException("Horario final e obrigatorio");
+            throw new RuntimeException("Horário final é obrigatório");
         }
 
         LocalTime inicio = LocalTime.parse(horarioInicio);
         LocalTime fim = LocalTime.parse(horarioFim);
 
         if (!fim.isAfter(inicio)) {
-            throw new RuntimeException("Horario final deve ser depois do horario inicial");
+            throw new RuntimeException("Horário final deve ser depois do horário inicial");
         }
     }
 }

@@ -41,7 +41,7 @@ public class ReservaService {
         usuarioRepository.findByRoleAndExcluidoFalse(Role.ADMIN)
                 .forEach(admin -> notificacaoService.criarNotificacao(
                         admin,
-                        "Nova reserva pendente para aprovacao: " + descricaoReserva(novaReserva)
+                        "Nova reserva pendente para aprovação: " + descricaoReserva(novaReserva)
                 ));
 
         return novaReserva;
@@ -97,7 +97,7 @@ public class ReservaService {
 
         notificacaoService.criarNotificacao(
                 reserva.getUsuario(),
-                "Sua reserva foi excluida."
+                "Sua reserva foi excluída."
         );
 
         reserva.setExcluido(true);
@@ -106,7 +106,7 @@ public class ReservaService {
 
     public Reserva buscarPorId(Long id) {
         return repository.findByIdAndExcluidoFalse(id)
-                .orElseThrow(() -> new RuntimeException("Reserva nao encontrada"));
+                .orElseThrow(() -> new RuntimeException("Reserva não encontrada"));
     }
 
     private void validarDisponibilidade(Reserva reserva, Long reservaId) {
@@ -129,27 +129,43 @@ public class ReservaService {
 
         if (ocupado) {
             throw new RuntimeException(
-                    "Ja existe uma reserva para este ambiente neste periodo ou no intervalo minimo de 15 minutos"
+                    "Já existe uma reserva para este ambiente neste periodo ou no intervalo mínimo de 15 minutos"
             );
         }
     }
 
+
     private void validarHorarios(Reserva reserva) {
-        if (reserva.getHorarioInicio() == null || reserva.getHorarioInicio().isBlank()) {
-            throw new RuntimeException("Horario inicial e obrigatorio");
+        if (reserva.getHorarioInicio() == null
+                || reserva.getHorarioInicio().isBlank()) {
+            throw new RuntimeException("Horário inicial é obrigatório");
         }
 
-        if (reserva.getHorarioFim() == null || reserva.getHorarioFim().isBlank()) {
-            throw new RuntimeException("Horario final e obrigatorio");
+        if (reserva.getHorarioFim() == null
+                || reserva.getHorarioFim().isBlank()) {
+            throw new RuntimeException("Horário final é obrigatório");
         }
 
         LocalTime inicio = LocalTime.parse(reserva.getHorarioInicio());
         LocalTime fim = LocalTime.parse(reserva.getHorarioFim());
 
         if (!fim.isAfter(inicio)) {
-            throw new RuntimeException("Horario final deve ser depois do horario inicial");
+            throw new RuntimeException(
+                    "Horário final deve ser depois do horário inicial"
+            );
+        }
+
+        long duracaoMinutos = java.time.Duration
+                .between(inicio, fim)
+                .toMinutes();
+
+        if (duracaoMinutos < 15) {
+            throw new RuntimeException(
+                    "A reserva deve ter duração mínima de 15 minutos."
+            );
         }
     }
+
 
     private String validarStatus(String status) {
 
@@ -162,7 +178,7 @@ public class ReservaService {
         }
 
         throw new RuntimeException(
-                "Status invalido. Apenas APROVADA ou REJEITADA sao permitidos."
+                "Status inválido. Apenas APROVADA ou REJEITADA são permitidos."
         );
     }
 
@@ -199,7 +215,7 @@ public class ReservaService {
                 + reserva.getData()
                 + " das "
                 + reserva.getHorarioInicio()
-                + " ate "
+                + " até "
                 + reserva.getHorarioFim();
     }
 
@@ -208,7 +224,7 @@ public class ReservaService {
         LocalDate hoje = LocalDate.now();
 
         if (data.isBefore(hoje)) {
-            throw new RuntimeException("Nao e possivel reservar em datas passadas");
+            throw new RuntimeException("Não é possível reservar em datas passadas");
         }
     }
 }
