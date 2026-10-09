@@ -12,4 +12,6 @@ public interface AmbienteRepository
     List<Ambiente> findByExcluidoFalse();
 
     Optional<Ambiente> findByIdAndExcluidoFalse(Long id);
+
+    boolean existsByNomeIgnoreCaseAndExcluidoFalse(String nome);
 }

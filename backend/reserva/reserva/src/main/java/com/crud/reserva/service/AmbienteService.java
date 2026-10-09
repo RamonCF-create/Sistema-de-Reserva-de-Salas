@@ -21,17 +21,40 @@ public class AmbienteService {
 
     private final ReservaRepository reservaRepository;
 
+
     public Ambiente salvar(Ambiente ambiente) {
+        ambiente.setNome(ambiente.getNome().trim());
+
+        validarNomeUnico(ambiente.getNome(), null);
+
         return repository.save(ambiente);
     }
+
 
     public List<Ambiente> listar() {
         return repository.findByExcluidoFalse();
     }
 
+
     public Ambiente atualizar(Long id, Ambiente ambiente) {
         Ambiente ambienteExistente = repository.findByIdAndExcluidoFalse(id)
-                .orElseThrow(() -> new RuntimeException("Ambiente não encontrado"));
+                .orElseThrow(() ->
+                        new RuntimeException("Ambiente não encontrado")
+                );
+
+        ambiente.setNome(ambiente.getNome().trim());
+
+        boolean nomeExiste =
+                repository.existsByNomeIgnoreCaseAndExcluidoFalse(
+                        ambiente.getNome()
+                );
+
+        if (nomeExiste && !ambienteExistente.getNome().trim()
+                .equalsIgnoreCase(ambiente.getNome())) {
+            throw new RuntimeException(
+                    "Já existe um ambiente cadastrado com esse nome."
+            );
+        }
 
         ambienteExistente.setNome(ambiente.getNome());
         ambienteExistente.setCapacidade(ambiente.getCapacidade());
@@ -39,6 +62,7 @@ public class AmbienteService {
 
         return repository.save(ambienteExistente);
     }
+
 
     public void deletar(Long id) {
         Ambiente ambiente = repository.findByIdAndExcluidoFalse(id)
@@ -117,4 +141,35 @@ public class AmbienteService {
             throw new RuntimeException("Horário final deve ser depois do horário inicial");
         }
     }
+
+
+    private void validarNomeUnico(String nome, Long idIgnorado) {
+        if (nome == null || nome.isBlank()) {
+            throw new RuntimeException("Nome do ambiente é obrigatório.");
+        }
+
+        String nomeNormalizado = nome.trim();
+
+        boolean nomeExiste =
+                repository.existsByNomeIgnoreCaseAndExcluidoFalse(
+                        nomeNormalizado
+                );
+
+        if (nomeExiste) {
+            boolean mesmoAmbiente = idIgnorado != null
+                    && repository.findByIdAndExcluidoFalse(idIgnorado)
+                    .map(ambiente ->
+                            ambiente.getNome().trim()
+                                    .equalsIgnoreCase(nomeNormalizado)
+                    )
+                    .orElse(false);
+
+            if (!mesmoAmbiente) {
+                throw new RuntimeException(
+                        "Já existe um ambiente cadastrado com esse nome."
+                );
+            }
+        }
+    }
+
 }

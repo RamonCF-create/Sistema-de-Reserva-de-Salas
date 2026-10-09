@@ -293,10 +293,16 @@ function Home() {
       setAmbienteEditandoId(null);
       await listarAmbientes();
       setPaginaAtual('ambientes');
+    
     } catch (error) {
       console.error('Erro ao salvar ambiente:', error);
-      setErro('Erro ao salvar ambiente');
+
+      setErro(
+        error.response?.data?.message ||
+        'Erro ao salvar ambiente'
+      );
     }
+
   }
 
   function editarAmbiente(ambiente) {
